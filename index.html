@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
+        integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <style>
+        .board {
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <form>
+            <div class="form-group">
+                <label for="complete-name">Complete Name</label>
+                <input type="text" class="form-control" id="complete-name" placeholder="John A. Doe">
+            </div>
+            <div class="form-group">
+                <label for="region">Region</label>
+                <select class="form-control" id="region">
+                    <option>NCR</option>
+                    <option>CAR</option>
+                    <option>Region 1</option>
+                    <option>Region 2</option>
+                    <option>Region 3</option>
+                    <option>Region 4A</option>
+                    <option>MIMAROPA</option>
+                    <option>Region 6</option>
+                    <option>Region 7</option>
+                    <option>Region 8</option>
+                    <option>Region 9</option>
+                    <option>Region 10</option>
+                    <option>Region 11</option>
+                    <option>Region 12</option>
+                    <option>CARAGA</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="canvas">Signature</label>
+                <div class="board">
+                    <canvas class="img-fluid"></canvas>
+                    <button type="button" data-action="clear" class="btn mb-2 float-right"><i class="fa fa-eraser"
+                            aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+            <button type="button" data-action="save-data" class="btn btn-primary mb-2">Confirm</button>
+            <button type="button" data-action="reset-data" class="btn btn-light mb-2">Reset</button>
+        </form>
+        <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Region</th>
+                <th scope="col">Signature</th>
+              </tr>
+            </thead>
+            <tbody id="data-body">
+                
+            </tbody>
+          </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
+    <script type="text/javascript">
+        var canvas = document.querySelector("canvas");
+        canvas.height = 460;
+        canvas.width = 1110;
+
+        var signaturePad = new SignaturePad(canvas, {
+            minWidth: 1,
+            maxWidth: 3,
+            backgroundColor: 'rgb(255, 255, 255)'
+        });
+        var clearButton = document.querySelector("[data-action=clear]");
+        clearButton.addEventListener("click", function (event) {
+            signaturePad.clear();
+        });
+
+        var saveButton=document.querySelector("[data-action=save-data]");
+        saveButton.addEventListener("click",function(event){
+            const name=document.getElementById("complete-name").value;
+            const region=document.getElementById("region").value;
+            const signature = signaturePad.toDataURL("image/svg+xml");
+            const _object={name:name,region:region,signature:signature};
+            let json_string='';
+            if(localStorage.getItem('jdal-data')==null){
+                json_string=JSON.stringify(_object);
+            }
+            else{
+                json_string=localStorage.getItem('jdal-data')+','+JSON.stringify(_object);
+            }
+            localStorage.setItem('jdal-data',json_string);
+            generateTD();
+        });
+        generateTD();
+        function generateTD(){
+            let data_table='';
+            let json_object=JSON.parse('['+localStorage.getItem('jdal-data')+']');
+            for(var i=0;i<Object.keys(json_object).length;i++){
+                data_table+='<tr><th scope="row">'+(i+1)+'<td>'+json_object[i]["name"]+'</td>'+'<td>'+json_object[i]["region"]+'</td>'+'<td><a href='+json_object[i]["signature"]+' targe="_blank">View Signature</a></td>'+'</td></th></tr>';
+            }
+            document.getElementById('data-body').insertAdjacentHTML('beforeend',data_table);
+        }
+        function resizeCanvas() {
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear(); // otherwise isEmpty() might return incorrect value
+        }
+
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+    </script>
+</body>
+
+</html>
